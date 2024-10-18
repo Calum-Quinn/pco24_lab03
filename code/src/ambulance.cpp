@@ -22,6 +22,12 @@ Ambulance::Ambulance(int uniqueId, int fund, std::vector<ItemType> resourcesSupp
 
 void Ambulance::sendPatient(){
     // TODO
+    for(auto& hospital : hospitals) {
+        if (hospital->send(ItemType::PatientSick, 1, TRANSFER_COST)) {
+            ++nbTransfer;
+            break;
+        }
+    }
 }
 
 void Ambulance::run() {

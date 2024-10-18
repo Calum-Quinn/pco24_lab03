@@ -18,7 +18,7 @@ Clinic::Clinic(int uniqueId, int fund, std::vector<ItemType> resourcesNeeded)
 
 bool Clinic::verifyResources() {
     for (auto item : resourcesNeeded) {
-        if (stocks[item] == 0) {
+        if (stocks[item] == 0) {é
             return false;
         }
     }
@@ -26,9 +26,12 @@ bool Clinic::verifyResources() {
 }
 
 int Clinic::request(ItemType what, int qty){
-    // TODO 
+    // TODO
+    int transferred = stocks[it] >= qty ? qty : stocks[it];
 
-    return 0;
+    stocks[it] -= transferred;
+
+    return transferred;
 }
 
 void Clinic::treatPatient() {
@@ -43,7 +46,12 @@ void Clinic::treatPatient() {
 }
 
 void Clinic::orderResources() {
-    // TODO 
+    // TODO
+
+    // Each run, the clinic asks the hospitals for sick patients
+    for (auto& hospital : hospitals) {
+        hospital->request(ItemType::PatientSick, );
+    }
 }
 
 void Clinic::run() {
@@ -94,8 +102,10 @@ int Clinic::getNumberPatients(){
     return stocks[ItemType::PatientSick] + stocks[ItemType::PatientHealed];
 }
 
-int Clinic::send(ItemType it, int qty, int bill){
-    return 0;
+int Clinic::send(ItemType it, int qty, int bill) {
+    stocks[it] += qty;
+
+
 }
 
 int Clinic::getAmountPaidToWorkers() {

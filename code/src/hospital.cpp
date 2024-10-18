@@ -19,8 +19,15 @@ Hospital::Hospital(int uniqueId, int fund, int maxBeds)
 }
 
 int Hospital::request(ItemType what, int qty){
-    // TODO 
-    return 0;
+    // TODO
+
+    // Receiving request for patients (probably sick ones, because the clinics use this function)
+    if (what == ItemType::PatientSick) {
+        
+    }
+    else {
+        // Whatever is needed if healed patients are requested
+    }
 }
 
 void Hospital::freeHealedPatient() {
@@ -29,17 +36,39 @@ void Hospital::freeHealedPatient() {
 
 void Hospital::transferPatientsFromClinic() {
     // TODO
+
+    int received = 0;
+
+    // Request as many patients as the hospital can handle
+    for(auto& clinic : clinics) {
+        received = clinic->request(ItemType::PatientHealed, maxBeds - currentBeds);
+        currentBeds += received;
+
+        // If all beds are full, stop requesting more patients
+        if (currentBeds == maxBeds) {
+            break;
+        }
+    }
 }
 
 int Hospital::send(ItemType it, int qty, int bill) {
     // TODO
-    return 0;
+    // Receiving a patient from an ambulance and transferring directly to an available clinic
+    nbHospitalised += qty;
+
+    for (auto& clinic : clinics) {
+        if (clinic->send(it,qty,bill)) {
+            break;
+        }
+    }
+
+    return qty;
 }
 
 void Hospital::run()
 {
     if (clinics.empty()) {
-        std::cerr << "You have to give clinics to a hospital before launching is routine" << std::endl;
+        std::cerr << "You have to give clinics to a hospital before launching its routine" << std::endl;
         return;
     }
 
