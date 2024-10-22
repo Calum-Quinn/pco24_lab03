@@ -18,7 +18,7 @@ Clinic::Clinic(int uniqueId, int fund, std::vector<ItemType> resourcesNeeded)
 
 bool Clinic::verifyResources() {
     for (auto item : resourcesNeeded) {
-        if (stocks[item] == 0) {é
+        if (stocks[item] == 0) {
             return false;
         }
     }
@@ -27,9 +27,11 @@ bool Clinic::verifyResources() {
 
 int Clinic::request(ItemType what, int qty){
     // TODO
-    int transferred = stocks[it] >= qty ? qty : stocks[it];
+    // Check to see if there are patients to transfer back to the hospital after treatment
+    int transferred = stocks[what] >= qty ? qty : stocks[what];
 
-    stocks[it] -= transferred;
+    // Update stocks depending on transfer (0 if none to transfer)
+    stocks[what] -= transferred;
 
     return transferred;
 }
@@ -37,10 +39,20 @@ int Clinic::request(ItemType what, int qty){
 void Clinic::treatPatient() {
     // TODO 
 
+    // If you reach this point it means you have the necessary items to treat a patient
+    ItemType item1 = resourcesNeeded[1];
+    ItemType item2 = resourcesNeeded[2];
+
     //Temps simulant un traitement 
     interface->simulateWork();
 
-    // TODO 
+    // TODO
+    // Update all the stocks (items and patients)
+    stocks[item1]--;
+    stocks[item2]--;
+    stocks[ItemType::PatientSick]--;
+    stocks[ItemType::PatientHealed]++;
+    nbTreated++;
     
     interface->consoleAppendText(uniqueId, "Clinic have healed a new patient");
 }
@@ -48,9 +60,18 @@ void Clinic::treatPatient() {
 void Clinic::orderResources() {
     // TODO
 
-    // Each run, the clinic asks the hospitals for sick patients
-    for (auto& hospital : hospitals) {
-        hospital->request(ItemType::PatientSick, );
+    Seller* hospital = chooseRandomSeller(hospitals);
+    if (hospital->request(ItemType::PatientSick, 1)) {
+        stocks[ItemType::PatientSick]++;
+    }
+
+    // No need to check if we have the necessary resources because we would not be here if it was the case
+    for(auto& supplier : suppliers) {
+        for(auto& item : resourcesNeeded) {
+            if (supplier->request(item, 1)) {
+                stocks[item]++;
+            }
+        }
     }
 }
 
@@ -104,8 +125,6 @@ int Clinic::getNumberPatients(){
 
 int Clinic::send(ItemType it, int qty, int bill) {
     stocks[it] += qty;
-
-
 }
 
 int Clinic::getAmountPaidToWorkers() {

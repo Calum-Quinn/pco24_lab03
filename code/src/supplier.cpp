@@ -18,7 +18,15 @@ Supplier::Supplier(int uniqueId, int fund, std::vector<ItemType> resourcesSuppli
 
 int Supplier::request(ItemType it, int qty) {
     // TODO
-    return 0;
+
+    // Check availability of desired products
+    int delivered = qty <= stocks[it] ? qty : stocks[it];
+
+    // Update stock of products
+    stocks[it] -= delivered;
+
+    // Return cost of delivered products
+    return delivered * getCostPerUnit(it);
 }
 
 void Supplier::run() {
@@ -26,7 +34,10 @@ void Supplier::run() {
     while (true /*TODO*/) {
         ItemType resourceSupplied = getRandomItemFromStock();
         int supplierCost = getEmployeeSalary(getEmployeeThatProduces(resourceSupplied));
-        // TODO 
+        // TODO
+
+        // Obtain a new random item
+        stocks[resourceSupplied]++;
 
         /* Temps aléatoire borné qui simule l'attente du travail fini*/
         interface->simulateWork();

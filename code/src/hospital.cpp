@@ -21,13 +21,14 @@ Hospital::Hospital(int uniqueId, int fund, int maxBeds)
 int Hospital::request(ItemType what, int qty){
     // TODO
 
-    // Receiving request for patients (probably sick ones, because the clinics use this function)
-    if (what == ItemType::PatientSick) {
-        
-    }
-    else {
-        // Whatever is needed if healed patients are requested
-    }
+    // Verify the amount of patients available to send
+    int delivered = qty <= stocks[what] ? qty : stocks[what];
+
+    // Update stocks and availability of beds
+    stocks[what] -= delivered;
+    currentBeds -= delivered;
+
+    return delivered;
 }
 
 void Hospital::freeHealedPatient() {
@@ -37,32 +38,34 @@ void Hospital::freeHealedPatient() {
 void Hospital::transferPatientsFromClinic() {
     // TODO
 
-    int received = 0;
-
-    // Request as many patients as the hospital can handle
-    for(auto& clinic : clinics) {
-        received = clinic->request(ItemType::PatientHealed, maxBeds - currentBeds);
-        currentBeds += received;
-
-        // If all beds are full, stop requesting more patients
-        if (currentBeds == maxBeds) {
-            break;
+    // Make sure there is an available bed
+    if (currentBeds != maxBeds) {
+        // Choose a clinic
+        Seller* clinic = chooseRandomSeller(clinics);
+        
+        // Request a healed patient
+        if (clinic->request(ItemType::PatientHealed,1)) {
+            // Update current state of patients
+            stocks[ItemType::PatientHealed]++;
+            currentBeds++;
         }
     }
 }
 
 int Hospital::send(ItemType it, int qty, int bill) {
     // TODO
-    // Receiving a patient from an ambulance and transferring directly to an available clinic
-    nbHospitalised += qty;
+    // Receiving a patient from an ambulance
+    int availableBeds = maxBeds - currentBeds;
 
-    for (auto& clinic : clinics) {
-        if (clinic->send(it,qty,bill)) {
-            break;
-        }
-    }
+    // Make sure you only receive a patient if you there is sufficient space
+    int received = qty <= availableBeds ? qty : availableBeds;
 
-    return qty;
+    // Update amount of patients
+    nbHospitalised += received;
+    stocks[it] += received;
+    currentBeds += received;
+
+    return received * TRANSFER_COST;
 }
 
 void Hospital::run()
