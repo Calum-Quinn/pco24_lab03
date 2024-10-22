@@ -37,7 +37,10 @@ void Supplier::run() {
         // TODO
 
         // Obtain a new random item
-        stocks[resourceSupplied]++;
+        if (money >= supplierCost) {
+            stocks[resourceSupplied]++;
+            money -= supplierCost;
+        }
 
         /* Temps aléatoire borné qui simule l'attente du travail fini*/
         interface->simulateWork();

@@ -5,6 +5,8 @@
 
 IWindowInterface* Hospital::interface = nullptr;
 
+int healedStays[5] = {0};
+
 Hospital::Hospital(int uniqueId, int fund, int maxBeds)
     : Seller(fund, uniqueId), maxBeds(maxBeds), currentBeds(0), nbHospitalised(0), nbFree(0)
 {
@@ -33,6 +35,18 @@ int Hospital::request(ItemType what, int qty){
 
 void Hospital::freeHealedPatient() {
     // TODO 
+
+    // Free the patients that have stayed the mandatory 5 days after being healed
+    stocks[ItemType::PatientHealed] -= healedStays[4];
+    currentBeds -= healedStays[4];
+    nbFree += healedStays[4];
+
+    // Update the time stayed after being healed
+    for (int i = 4; i > 0; i--) {
+        healedStays[i] = healedStays[i - 1];
+    }
+
+    healedStays[0] = 0;
 }
 
 void Hospital::transferPatientsFromClinic() {
@@ -48,6 +62,8 @@ void Hospital::transferPatientsFromClinic() {
             // Update current state of patients
             stocks[ItemType::PatientHealed]++;
             currentBeds++;
+            nbHospitalised++;
+            healedStays[0]++;
         }
     }
 }
