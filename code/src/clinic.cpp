@@ -32,6 +32,7 @@ int Clinic::request(ItemType what, int qty){
 
     // Update stocks depending on transfer (0 if none to transfer)
     stocks[what] -= transferred;
+    money += transferred * TRANSFER_COST;
 
     return transferred;
 }
@@ -53,6 +54,7 @@ void Clinic::treatPatient() {
     stocks[ItemType::PatientSick]--;
     stocks[ItemType::PatientHealed]++;
     nbTreated++;
+    money += HEALING_COST;
     
     interface->consoleAppendText(uniqueId, "Clinic have healed a new patient");
 }
@@ -68,8 +70,10 @@ void Clinic::orderResources() {
     // No need to check if we have the necessary resources because we would not be here if it was the case
     for(auto& supplier : suppliers) {
         for(auto& item : resourcesNeeded) {
-            if (supplier->request(item, 1)) {
+            int cost = supplier->request(item, 1);
+            if (cost) {
                 stocks[item]++;
+                money -= cost;
             }
         }
     }

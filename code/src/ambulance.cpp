@@ -23,9 +23,16 @@ Ambulance::Ambulance(int uniqueId, int fund, std::vector<ItemType> resourcesSupp
 void Ambulance::sendPatient(){
     // TODO
     Seller* hospital = chooseRandomSeller(hospitals);
-    if (hospital->send(ItemType::PatientSick, 1, TRANSFER_COST)) {
+
+    int cost = hospital->send(ItemType::PatientSick, 1, TRANSFER_COST);
+
+    if (cost) {
         nbTransfer++;
         stocks[ItemType::PatientSick]--;
+        // Receive money for transfer
+        money += cost;
+        // Pay the salaries
+        money -= getEmployeeSalary(getEmployeeThatProduces(ItemType::PatientSick));
     }
 }
 

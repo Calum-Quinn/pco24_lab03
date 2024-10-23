@@ -27,6 +27,7 @@ int Hospital::request(ItemType what, int qty){
     // Update stocks and availability of beds
     stocks[what] -= delivered;
     currentBeds -= delivered;
+    money += delivered * TRANSFER_COST;
 
     return delivered;
 }
@@ -34,17 +35,14 @@ int Hospital::request(ItemType what, int qty){
 void Hospital::freeHealedPatient() {
     // TODO 
 
-    // // Free the patients that have stayed the mandatory 5 days after being healed
-    // stocks[ItemType::PatientHealed] -= healedStays[4];
-    // currentBeds -= healedStays[4];
-    // nbFree += healedStays[4];
+    // Free the patients that have stayed the mandatory 5 days after being healed
+    stocks[ItemType::PatientHealed] -= healedStays.back();
+    currentBeds -= healedStays.back();
+    nbFree += healedStays.back();
 
-    // // Update the time stayed after being healed
-    // for (int i = 4; i > 0; i--) {
-    //     healedStays[i] = healedStays[i - 1];
-    // }
-
-    // healedStays[0] = 0;
+    // Update the time stayed after being healed
+    healedStays.insert(healedStays.begin(), 0);
+    healedStays.pop_back();
 }
 
 void Hospital::transferPatientsFromClinic() {
@@ -61,6 +59,7 @@ void Hospital::transferPatientsFromClinic() {
             stocks[ItemType::PatientHealed]++;
             currentBeds++;
             nbHospitalised++;
+            money -= TRANSFER_COST;
             healedStays[0]++;
         }
     }
@@ -78,6 +77,7 @@ int Hospital::send(ItemType it, int qty, int bill) {
     nbHospitalised += received;
     stocks[it] += received;
     currentBeds += received;
+    money -= received * TRANSFER_COST;
 
     return received * TRANSFER_COST;
 }
@@ -91,7 +91,10 @@ void Hospital::run()
 
     interface->consoleAppendText(uniqueId, "[START] Hospital routine");
 
+    healedStays = std::vector<int>(5, 0);
+
     while (true /*TODO*/) {
+
         transferPatientsFromClinic();
 
         freeHealedPatient();

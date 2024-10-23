@@ -25,6 +25,7 @@ int Supplier::request(ItemType it, int qty) {
     // Update stock of products
     stocks[it] -= delivered;
     nbSupplied += delivered;
+    money += delivered * getCostPerUnit(it);
 
     // Return cost of delivered products
     return delivered * getCostPerUnit(it);
