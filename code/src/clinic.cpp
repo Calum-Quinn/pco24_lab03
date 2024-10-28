@@ -63,17 +63,22 @@ void Clinic::orderResources() {
     // TODO
 
     Seller* hospital = chooseRandomSeller(hospitals);
-    if (hospital->request(ItemType::PatientSick, 1)) {
+    if (money >= getCostPerUnit(ItemType::PatientSick) && hospital->request(ItemType::PatientSick, 1)) {
         stocks[ItemType::PatientSick]++;
     }
 
     // No need to check if we have the necessary resources because we would not be here if it was the case
     for(auto& supplier : suppliers) {
         for(auto& item : resourcesNeeded) {
-            int cost = supplier->request(item, 1);
-            if (cost) {
-                stocks[item]++;
-                money -= cost;
+            // Check if the clinic has enough money to buy the supplies
+            if (money >= getCostPerUnit(item)) {
+                int cost = supplier->request(item, 1);
+
+                // If the transaction goes through, update the state of the clinic
+                if (cost) {
+                    stocks[item]++;
+                    money -= cost;
+                }
             }
         }
     }

@@ -53,8 +53,8 @@ void Hospital::transferPatientsFromClinic() {
         // Choose a clinic
         Seller* clinic = chooseRandomSeller(clinics);
         
-        // Request a healed patient
-        if (clinic->request(ItemType::PatientHealed,1)) {
+        // Request a healed patient if sufficient money
+        if (money >= TRANSFER_COST && clinic->request(ItemType::PatientHealed,1)) {
             // Update current state of patients
             stocks[ItemType::PatientHealed]++;
             currentBeds++;
@@ -70,8 +70,9 @@ int Hospital::send(ItemType it, int qty, int bill) {
     // Receiving a patient from an ambulance
     int availableBeds = maxBeds - currentBeds;
 
-    // Make sure you only receive a patient if you there is sufficient space
+    // Make sure you only receive a patient if you there is sufficient space and money
     int received = qty <= availableBeds ? qty : availableBeds;
+    received = money >= received * TRANSFER_COST ? received : money / TRANSFER_COST;
 
     // Update amount of patients
     nbHospitalised += received;
