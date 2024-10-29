@@ -27,12 +27,17 @@ bool Clinic::verifyResources() {
 
 int Clinic::request(ItemType what, int qty){
     // TODO
+
+    mutex.lock();
+
     // Check to see if there are patients to transfer back to the hospital after treatment
     int transferred = stocks[what] >= qty ? qty : stocks[what];
 
     // Update stocks depending on transfer (0 if none to transfer)
     stocks[what] -= transferred;
     money += transferred * TRANSFER_COST;
+
+    mutex.unlock();
 
     return transferred;
 }

@@ -19,6 +19,8 @@ Supplier::Supplier(int uniqueId, int fund, std::vector<ItemType> resourcesSuppli
 int Supplier::request(ItemType it, int qty) {
     // TODO
 
+    mutex.lock();
+
     // Check availability of desired products
     int delivered = qty <= stocks[it] ? qty : stocks[it];
 
@@ -26,6 +28,8 @@ int Supplier::request(ItemType it, int qty) {
     stocks[it] -= delivered;
     nbSupplied += delivered;
     money += delivered * getCostPerUnit(it);
+
+    mutex.unlock();
 
     // Return cost of delivered products
     return delivered * getCostPerUnit(it);
