@@ -4,8 +4,8 @@
 void Utils::endService() {
     // TODO
     for (auto& thread : threads) {
-        thread->requestStop();
-    }
+            thread->requestStop();
+        }
 }
 
 void Utils::externalEndService() {

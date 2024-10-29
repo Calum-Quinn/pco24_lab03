@@ -108,7 +108,7 @@ private:
 
     static IWindowInterface* interface;  // Pointeur statique vers l'interface utilisateur pour les logs et mises à jour visuelles
 
-    PcoMutex mutex_request, mutex_send; // Mutex pour gérer les accès concurrents aux ressources de l'hôpital
+    PcoMutex mutex; // Mutex pour gérer les accès concurrents aux ressources de l'hôpital
 };
 
 #endif // HOSPITAL_H

@@ -10,6 +10,7 @@ Hospital::Hospital(int uniqueId, int fund, int maxBeds)
 {
     interface->updateFund(uniqueId, fund);
     interface->consoleAppendText(uniqueId, "Hospital Created with " + QString::number(maxBeds) + " beds");
+    interface->consoleAppendText(uniqueId, "Hospital ID: " + QString::number(getUniqueId()));
     
     std::vector<ItemType> initialStocks = { ItemType::PatientHealed, ItemType::PatientSick };
 
@@ -21,17 +22,19 @@ Hospital::Hospital(int uniqueId, int fund, int maxBeds)
 int Hospital::request(ItemType what, int qty){
     // TODO
 
-    mutex_request.lock();
+    mutex.lock();
 
     // Verify the amount of patients available to send
     int delivered = qty <= stocks[what] ? qty : stocks[what];
+
+    interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(delivered) + " piece");
 
     // Update stocks and availability of beds
     stocks[what] -= delivered;
     currentBeds -= delivered;
     money += delivered * TRANSFER_COST;
 
-    mutex_request.unlock();
+    mutex.unlock();
 
     return delivered;
 }
@@ -43,6 +46,8 @@ void Hospital::freeHealedPatient() {
     stocks[ItemType::PatientHealed] -= healedStays.back();
     currentBeds -= healedStays.back();
     nbFree += healedStays.back();
+
+    //interface->consoleAppendText(uniqueId, "Free patient");
 
     // Update the time stayed after being healed
     healedStays.insert(healedStays.begin(), 0);
@@ -60,11 +65,14 @@ void Hospital::transferPatientsFromClinic() {
         // Request a healed patient if sufficient money
         if (money >= TRANSFER_COST && clinic->request(ItemType::PatientHealed,1)) {
             // Update current state of patients
+
             stocks[ItemType::PatientHealed]++;
             currentBeds++;
             nbHospitalised++;
             money -= TRANSFER_COST;
             healedStays[0]++;
+
+            interface->consoleAppendText(uniqueId, "Send patient to clinic");
         }
     }
 }
@@ -72,7 +80,7 @@ void Hospital::transferPatientsFromClinic() {
 int Hospital::send(ItemType it, int qty, int bill) {
     // TODO
 
-    mutex_send.lock();
+    mutex.lock();
 
     // Receiving a patient from an ambulance
     int availableBeds = maxBeds - currentBeds;
@@ -87,7 +95,7 @@ int Hospital::send(ItemType it, int qty, int bill) {
     currentBeds += received;
     money -= received * TRANSFER_COST;
 
-    mutex_send.unlock();
+    mutex.unlock();
 
     return received * TRANSFER_COST;
 }
@@ -105,9 +113,13 @@ void Hospital::run()
 
     while (!PcoThread::thisThread()->stopRequested()) {
 
+        mutex.lock();
+
         transferPatientsFromClinic();
 
         freeHealedPatient();
+
+        mutex.unlock();
 
         interface->updateFund(uniqueId, money);
         interface->updateStock(uniqueId, &stocks);

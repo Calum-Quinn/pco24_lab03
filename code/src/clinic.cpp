@@ -33,6 +33,8 @@ int Clinic::request(ItemType what, int qty){
     // Check to see if there are patients to transfer back to the hospital after treatment
     int transferred = stocks[what] >= qty ? qty : stocks[what];
 
+    interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(transferred) + " piece");
+
     // Update stocks depending on transfer (0 if none to transfer)
     stocks[what] -= transferred;
     money += transferred * TRANSFER_COST;
@@ -53,6 +55,7 @@ void Clinic::treatPatient() {
     interface->simulateWork();
 
     // TODO
+
     // Update all the stocks (items and patients)
     stocks[item1]--;
     stocks[item2]--;
@@ -60,6 +63,8 @@ void Clinic::treatPatient() {
     stocks[ItemType::PatientHealed]++;
     nbTreated++;
     money += HEALING_COST;
+
+    interface->consoleAppendText(uniqueId, "Patient healed!");
     
     interface->consoleAppendText(uniqueId, "Clinic have healed a new patient");
 }
@@ -70,17 +75,24 @@ void Clinic::orderResources() {
     Seller* hospital = chooseRandomSeller(hospitals);
     if (money >= getCostPerUnit(ItemType::PatientSick) && hospital->request(ItemType::PatientSick, 1)) {
         stocks[ItemType::PatientSick]++;
+        interface->consoleAppendText(uniqueId, "Bought " + QString::number(1) + " patient(s) from "  + QString::number(hospital->getUniqueId()) );
     }
 
     // No need to check if we have the necessary resources because we would not be here if it was the case
     for(auto& supplier : suppliers) {
         for(auto& item : resourcesNeeded) {
-            // Check if the clinic has enough money to buy the supplies
+
+            // Check if the clinic has enough money to buy the supplies            
             if (money >= getCostPerUnit(item)) {
+
                 int cost = supplier->request(item, 1);
 
                 // If the transaction goes through, update the state of the clinic
+
+                interface->consoleAppendText(uniqueId, "Bought: " + getItemName(item) + " " + QString::number(1) + " piece from " + QString::number(supplier->getUniqueId()));
+
                 if (cost) {
+
                     stocks[item]++;
                     money -= cost;
                 }
@@ -103,6 +115,8 @@ void Clinic::run() {
         } else {
             orderResources();
         }
+
+        mutex.unlock();
        
         interface->simulateWork();
 

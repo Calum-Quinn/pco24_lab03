@@ -12,6 +12,12 @@ Supplier::Supplier(int uniqueId, int fund, std::vector<ItemType> resourcesSuppli
     }
 
     interface->consoleAppendText(uniqueId, QString("Supplier Created"));
+    interface->consoleAppendText(uniqueId, "Supplier ID: " + QString::number(getUniqueId()));
+
+    for (const auto& item : resourcesSupplied) {
+        interface->consoleAppendText(uniqueId, QString("Supplier will sell: " + getItemName(item)));
+    }
+
     interface->updateFund(uniqueId, fund);
 }
 
@@ -23,6 +29,8 @@ int Supplier::request(ItemType it, int qty) {
 
     // Check availability of desired products
     int delivered = qty <= stocks[it] ? qty : stocks[it];
+
+    interface->consoleAppendText(uniqueId, "Sold: " + getItemName(it) + " " + QString::number(delivered) + " piece");
 
     // Update stock of products
     stocks[it] -= delivered;
@@ -37,16 +45,26 @@ int Supplier::request(ItemType it, int qty) {
 
 void Supplier::run() {
     interface->consoleAppendText(uniqueId, "[START] Supplier routine");
+
+
     while (!PcoThread::thisThread()->stopRequested()) {
         ItemType resourceSupplied = getRandomItemFromStock();
+
+        mutex.lock();
+
         int supplierCost = getEmployeeSalary(getEmployeeThatProduces(resourceSupplied));
         // TODO
 
         // Obtain a new random item
-        if (money >= supplierCost) {
+        if (std::find(this->resourcesSupplied.begin(), this->resourcesSupplied.end(), resourceSupplied) != this->resourcesSupplied.end() && money >= supplierCost) {
+
             stocks[resourceSupplied]++;
             money -= supplierCost;
+
+            interface->consoleAppendText(uniqueId, "Resupplied: " + getItemName(resourceSupplied) + " " + QString::number(1) + " piece");
         }
+
+        mutex.unlock();
 
         /* Temps aléatoire borné qui simule l'attente du travail fini*/
         interface->simulateWork();
