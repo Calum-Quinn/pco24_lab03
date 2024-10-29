@@ -103,7 +103,7 @@ void Hospital::run()
 
     healedStays = std::vector<int>(5, 0);
 
-    while (true /*TODO*/) {
+    while (!PcoThread::thisThread()->stopRequested()) {
 
         transferPatientsFromClinic();
 

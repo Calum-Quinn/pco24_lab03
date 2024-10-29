@@ -39,7 +39,7 @@ void Ambulance::sendPatient(){
 void Ambulance::run() {
     interface->consoleAppendText(uniqueId, "[START] Ambulance routine");
 
-    while (true /*TODO*/) {
+    while (!PcoThread::thisThread()->stopRequested()) {
     
         sendPatient();
         
