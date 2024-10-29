@@ -21,6 +21,8 @@ Hospital::Hospital(int uniqueId, int fund, int maxBeds)
 int Hospital::request(ItemType what, int qty){
     // TODO
 
+    mutex_request.lock();
+
     // Verify the amount of patients available to send
     int delivered = qty <= stocks[what] ? qty : stocks[what];
 
@@ -28,6 +30,8 @@ int Hospital::request(ItemType what, int qty){
     stocks[what] -= delivered;
     currentBeds -= delivered;
     money += delivered * TRANSFER_COST;
+
+    mutex_request.unlock();
 
     return delivered;
 }
@@ -67,6 +71,9 @@ void Hospital::transferPatientsFromClinic() {
 
 int Hospital::send(ItemType it, int qty, int bill) {
     // TODO
+
+    mutex_send.lock();
+
     // Receiving a patient from an ambulance
     int availableBeds = maxBeds - currentBeds;
 
@@ -79,6 +86,8 @@ int Hospital::send(ItemType it, int qty, int bill) {
     stocks[it] += received;
     currentBeds += received;
     money -= received * TRANSFER_COST;
+
+    mutex_send.unlock();
 
     return received * TRANSFER_COST;
 }
