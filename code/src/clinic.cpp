@@ -35,10 +35,11 @@ int Clinic::request(ItemType what, int qty){
 
     interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(transferred) + " piece");
 
-    // Update stocks depending on transfer (0 if none to transfer)
-    stocks[what] -= transferred;
-    money += transferred * TRANSFER_COST;
-
+    if(transferred){
+        // Update stocks depending on transfer (0 if none to transfer)
+        stocks[what] -= transferred;
+        money += transferred * TRANSFER_COST;
+    }
     mutex.unlock();
 
     return transferred;
@@ -46,6 +47,10 @@ int Clinic::request(ItemType what, int qty){
 
 void Clinic::treatPatient() {
     // TODO 
+
+    int cost = HEALING_COST + getEmployeeSalary(getEmployeeThatProduces(ItemType::PatientHealed));
+
+    if(cost > money) return;
 
     // If you reach this point it means you have the necessary items to treat a patient
     ItemType item1 = resourcesNeeded[1];
@@ -62,9 +67,9 @@ void Clinic::treatPatient() {
     stocks[ItemType::PatientSick]--;
     stocks[ItemType::PatientHealed]++;
     nbTreated++;
-    money += HEALING_COST;
 
-    interface->consoleAppendText(uniqueId, "Patient healed!");
+    // Pay the costs
+    money -= cost;
     
     interface->consoleAppendText(uniqueId, "Clinic have healed a new patient");
 }
@@ -89,9 +94,9 @@ void Clinic::orderResources() {
 
                 // If the transaction goes through, update the state of the clinic
 
-                interface->consoleAppendText(uniqueId, "Bought: " + getItemName(item) + " " + QString::number(1) + " piece from " + QString::number(supplier->getUniqueId()));
-
                 if (cost) {
+
+                    interface->consoleAppendText(uniqueId, "Bought: " + getItemName(item) + " " + QString::number(1) + " piece from " + QString::number(supplier->getUniqueId()));
 
                     stocks[item]++;
                     money -= cost;
@@ -106,9 +111,11 @@ void Clinic::run() {
         std::cerr << "You have to give to hospitals and suppliers to run a clinic" << std::endl;
         return;
     }
-    interface->consoleAppendText(uniqueId, "[START] Factory routine");
+    interface->consoleAppendText(uniqueId, "[START] Clinic routine");
 
     while (!PcoThread::thisThread()->stopRequested()) {
+
+        mutex.lock();
         
         if (verifyResources()) {
             treatPatient();
@@ -123,7 +130,7 @@ void Clinic::run() {
         interface->updateFund(uniqueId, money);
         interface->updateStock(uniqueId, &stocks);
     }
-    interface->consoleAppendText(uniqueId, "[STOP] Factory routine");
+    interface->consoleAppendText(uniqueId, "[STOP] Clinic routine");
 }
 
 

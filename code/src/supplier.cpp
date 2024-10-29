@@ -32,10 +32,12 @@ int Supplier::request(ItemType it, int qty) {
 
     interface->consoleAppendText(uniqueId, "Sold: " + getItemName(it) + " " + QString::number(delivered) + " piece");
 
-    // Update stock of products
-    stocks[it] -= delivered;
-    nbSupplied += delivered;
-    money += delivered * getCostPerUnit(it);
+    if(delivered){
+        // Update stock of products
+        stocks[it] -= delivered;
+        nbSupplied += delivered;
+        money += delivered * getCostPerUnit(it);
+    }
 
     mutex.unlock();
 
@@ -56,10 +58,13 @@ void Supplier::run() {
         // TODO
 
         // Obtain a new random item
-        if (std::find(this->resourcesSupplied.begin(), this->resourcesSupplied.end(), resourceSupplied) != this->resourcesSupplied.end() && money >= supplierCost) {
+        if ((std::find(this->resourcesSupplied.begin(), this->resourcesSupplied.end(), resourceSupplied) != this->resourcesSupplied.end())
+                && money >= supplierCost) {
 
             stocks[resourceSupplied]++;
             money -= supplierCost;
+
+            nbSupplied++;
 
             interface->consoleAppendText(uniqueId, "Resupplied: " + getItemName(resourceSupplied) + " " + QString::number(1) + " piece");
         }
@@ -69,8 +74,6 @@ void Supplier::run() {
         /* Temps aléatoire borné qui simule l'attente du travail fini*/
         interface->simulateWork();
         //TODO
-
-        nbSupplied++;
 
         interface->updateFund(uniqueId, money);
         interface->updateStock(uniqueId, &stocks);

@@ -29,11 +29,12 @@ int Hospital::request(ItemType what, int qty){
 
     interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(delivered) + " piece");
 
-    // Update stocks and availability of beds
-    stocks[what] -= delivered;
-    currentBeds -= delivered;
-    money += delivered * TRANSFER_COST;
-
+    if(delivered){
+        // Update stocks and availability of beds
+        stocks[what] -= delivered;
+        currentBeds -= delivered;
+        money += delivered * TRANSFER_COST;
+    }
     mutex.unlock();
 
     return delivered;
@@ -61,15 +62,17 @@ void Hospital::transferPatientsFromClinic() {
     if (currentBeds != maxBeds) {
         // Choose a clinic
         Seller* clinic = chooseRandomSeller(clinics);
+
+        int cost = TRANSFER_COST + getEmployeeSalary(EmployeeType::Nurse);
         
         // Request a healed patient if sufficient money
-        if (money >= TRANSFER_COST && clinic->request(ItemType::PatientHealed,1)) {
+        if (money >= cost && clinic->request(ItemType::PatientHealed,1)) {
             // Update current state of patients
 
             stocks[ItemType::PatientHealed]++;
             currentBeds++;
             nbHospitalised++;
-            money -= TRANSFER_COST;
+            money -= cost;
             healedStays[0]++;
 
             interface->consoleAppendText(uniqueId, "Send patient to clinic");
@@ -89,11 +92,14 @@ int Hospital::send(ItemType it, int qty, int bill) {
     int received = qty <= availableBeds ? qty : availableBeds;
     received = money >= received * TRANSFER_COST ? received : money / TRANSFER_COST;
 
-    // Update amount of patients
-    nbHospitalised += received;
-    stocks[it] += received;
-    currentBeds += received;
-    money -= received * TRANSFER_COST;
+    if(received){
+        // Update amount of patients
+        nbHospitalised += received;
+        stocks[it] += received;
+        currentBeds += received;
+        money -= received * TRANSFER_COST;
+        money -= getEmployeeSalary(EmployeeType::Nurse);
+    }
 
     mutex.unlock();
 
