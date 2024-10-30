@@ -29,6 +29,7 @@ int Hospital::request(ItemType what, int qty){
 
     interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(delivered) + " piece");
 
+    // != 0 if available patients to send
     if(delivered){
         // Update stocks and availability of beds
         stocks[what] -= delivered;
@@ -75,7 +76,7 @@ void Hospital::transferPatientsFromClinic() {
             money -= cost;
             healedStays[0]++;
 
-            interface->consoleAppendText(uniqueId, "Send patient to clinic");
+            interface->consoleAppendText(uniqueId, "Receive patient from clinic");
         }
     }
 }
@@ -87,18 +88,18 @@ int Hospital::send(ItemType it, int qty, int bill) {
 
     // Receiving a patient from an ambulance
     int availableBeds = maxBeds - currentBeds;
+    int salary = getEmployeeSalary(EmployeeType::Nurse);
 
-    // Make sure you only receive a patient if you there is sufficient space and money
+    // Make sure you only receive a patient if you there is sufficient space and money to pay for transfer + salary
     int received = qty <= availableBeds ? qty : availableBeds;
-    received = money >= received * TRANSFER_COST ? received : money / TRANSFER_COST;
+    received = money >= (received * (TRANSFER_COST + salary)) ? received : money / (TRANSFER_COST + salary);
 
     if(received){
         // Update amount of patients
         nbHospitalised += received;
         stocks[it] += received;
         currentBeds += received;
-        money -= received * TRANSFER_COST;
-        money -= getEmployeeSalary(EmployeeType::Nurse);
+        money -= received * (TRANSFER_COST + salary);
     }
 
     mutex.unlock();

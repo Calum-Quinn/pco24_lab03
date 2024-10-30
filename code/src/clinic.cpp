@@ -31,7 +31,7 @@ int Clinic::request(ItemType what, int qty){
     mutex.lock();
 
     // Check to see if there are patients to transfer back to the hospital after treatment
-    int transferred = stocks[what] >= qty ? qty : stocks[what];
+    int transferred = qty <= stocks[what] ? qty : stocks[what];
 
     interface->consoleAppendText(uniqueId, "Sold: " + getItemName(what) + " " + QString::number(transferred) + " piece");
 
@@ -48,7 +48,7 @@ int Clinic::request(ItemType what, int qty){
 void Clinic::treatPatient() {
     // TODO 
 
-    int cost = HEALING_COST + getEmployeeSalary(getEmployeeThatProduces(ItemType::PatientHealed));
+    int cost = getEmployeeSalary(getEmployeeThatProduces(ItemType::PatientHealed)); // Need healing costs ?
 
     if(cost > money) return;
 
@@ -78,7 +78,11 @@ void Clinic::orderResources() {
     // TODO
 
     Seller* hospital = chooseRandomSeller(hospitals);
+
+    // If enough money and patient actually transferred
     if (money >= getCostPerUnit(ItemType::PatientSick) && hospital->request(ItemType::PatientSick, 1)) {
+        // Update stocks
+        money -= TRANSFER_COST;
         stocks[ItemType::PatientSick]++;
         interface->consoleAppendText(uniqueId, "Bought " + QString::number(1) + " patient(s) from "  + QString::number(hospital->getUniqueId()) );
     }
@@ -93,7 +97,6 @@ void Clinic::orderResources() {
                 int cost = supplier->request(item, 1);
 
                 // If the transaction goes through, update the state of the clinic
-
                 if (cost) {
 
                     interface->consoleAppendText(uniqueId, "Bought: " + getItemName(item) + " " + QString::number(1) + " piece from " + QString::number(supplier->getUniqueId()));

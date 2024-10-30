@@ -35,7 +35,6 @@ int Supplier::request(ItemType it, int qty) {
     if(delivered){
         // Update stock of products
         stocks[it] -= delivered;
-        nbSupplied += delivered;
         money += delivered * getCostPerUnit(it);
     }
 
@@ -61,9 +60,9 @@ void Supplier::run() {
         if ((std::find(this->resourcesSupplied.begin(), this->resourcesSupplied.end(), resourceSupplied) != this->resourcesSupplied.end())
                 && money >= supplierCost) {
 
+            // Update stocks
             stocks[resourceSupplied]++;
             money -= supplierCost;
-
             nbSupplied++;
 
             interface->consoleAppendText(uniqueId, "Resupplied: " + getItemName(resourceSupplied) + " " + QString::number(1) + " piece");

@@ -26,14 +26,14 @@ void Ambulance::sendPatient(){
 
     int cost = hospital->send(ItemType::PatientSick, 1, TRANSFER_COST);
 
+    // Cost != 0 if a transfer occurred
     if (cost) {
-
         interface->consoleAppendText(uniqueId, "Send patient to hospital (" + QString::number(hospital->getUniqueId()) + ")");
 
         nbTransfer++;
         stocks[ItemType::PatientSick]--;
         // Receive money for transfer
-        money += cost;
+        money += TRANSFER_COST;
         // Pay the salaries
         money -= getEmployeeSalary(getEmployeeThatProduces(ItemType::PatientSick));
     }
