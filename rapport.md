@@ -10,6 +10,7 @@ Calum Quinn - Urs Behrmann
 - [Introduction au problème](#introduction-au-problème)
 - [Choix d'implémentation](#choix-dimplémentation)
     - [Libération des patients soignés](#libération-des-patients-soignés)
+    - [Gestion de la concurrence](#gestion-de-la-concurrence)
     - [Arrêt des threads lors de la fermeture](#arrêt-des-threads-lors-de-la-fermeture)
 - [Tests effectués](#tests-effectués)
     - [Calculs d'argent](#calculs-dargent)
@@ -18,7 +19,7 @@ Calum Quinn - Urs Behrmann
 ## Introduction au problème
 
 Le but primaire de ce laboratoire est d'implémenter la gestion de multiples threads concernant la concurrence et surtout l'accès concurrent à des variables partagées.
-Pour celui-ci nous avons dû tout d'abord implémenter les opérations d'échanges entre les divers acteurs du labo (ambulances, clinics, hopitaux et fournisseurs).
+Pour celui-ci nous avons dû tout d'abord implémenter les opérations d'échanges entre les divers acteurs du labo (ambulances, clinics, hôpitaux et fournisseurs).
 Une fois ceci effectué, nous avons pu nous pencher sur les aspects de concurrence et donc la protection des zones critiques lors des modifications des variables partagées.
 
 
@@ -29,9 +30,16 @@ Une fois ceci effectué, nous avons pu nous pencher sur les aspects de concurren
 Pour l'implémentation des jours de repos obligatoire, nous avons décider d'utiliser un vecteur comme attribut de la classe.
 Ceci permet de facilement savoir combien de personnes ont passés combien de temps au repos après avoir été soigné et donc de les libérer dès les 5 jours effectués.
 
+### Gestion de la concurrence
+
+Ce projet comportait divers instances de concurrence. Les moments en questions sont lors d'accès concurrents sur la même ressource du même établissement.
+E.G. Deux hôpitaux différents demandent en même temps un patient soigné à la même clinique.
+
+Du coup il a fallu gérer les accès concurrent dans les fonctions `request()` des établissements. Ambulance n'a donc pas besoin de mutex car il ne fait qu'envoyer par lui même et ne doit pas prendre de décisions en fonctions des autres threads car on ne lui fait pas de requêtes.
+
 ### Arrêt des threads lors de la fermeture
 
-Pour arrèter proprement les threads lors de la fermeture de la fenêtre, nous envoyons une demande d'arrêt à chaque thread (`requestStop()`).
+Pour arrêter proprement les threads lors de la fermeture de la fenêtre, nous envoyons une demande d'arrêt à chaque thread (`requestStop()`).
 Pour que la demande soit exécutée, il faut introduire le contrôle de la variable comme condition de continuation de chaque thread.
 C'est-à-dire que si la variable `stopRequested` passe à `true` le thread comprend qu'il doit se terminer.
 
@@ -44,7 +52,7 @@ E.G.
  - Transfert sortant compense transfert entrant
  - Achat de matériel compense la vente du même matériel
 
-Ceci ne s'applique pas aux salaires car elles sortent définitivement du système.
+Ceci ne s'applique pas aux salaires car elles sortent définitivement du système. Il a tout de même fallu contrôler que celles-ci soient bien payées au moment nécessaire.
 
 ### Calculs de patients
 Nous sommes également passés à travers toutes les modifications du nombre de patients pour faire de même qu'avec l'argent pour conserver le nombre total.
