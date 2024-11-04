@@ -16,6 +16,7 @@ Calum Quinn - Urs Behrmann
 - [Tests effectués](#tests-effectués)
     - [Calculs d'argent](#calculs-dargent)
     - [Calculs de patients](#calculs-de-patients)
+    - [Concurrence](#concurrence)
 
 ## Introduction au problème
 
@@ -35,7 +36,7 @@ Ceci permet de facilement savoir combien de personnes ont passés combien de tem
 
 ### Gestion de la concurrence
 
-Ce projet comportait diverses instances de concurrence. Les situations en question se produisent lors des accès concurrents à la même ressource d'un même établissement. Par exemple, deux hôpitaux différents peuvent simultanément demander qu'un patient soit soigné dans la même clinique.
+Ce projet comportait diverses instances de concurrence. Les situations en question se produisent lors des accès concurrents à la même ressource d'un même établissement. Par exemple, deux hôpitaux différents peuvent simultanément demander un patient soigné dans la même clinique.
 
 Il a donc fallu gérer les accès concurrents dans les fonctions `request()` des établissements (hôpital, clinique, fournisseur), la fonction`send()` de l'hôpital, ainsi que les accès aux variables propres des établissements.
 
@@ -74,5 +75,11 @@ Ceci ne s'applique pas aux salaires car elles sortent définitivement du systèm
 ### Calculs de patients
 
 Nous sommes également passés à travers toutes les modifications du nombre de patients pour faire de même qu'avec l'argent pour conserver le nombre total.
+
+### Concurrence
+
+Une fois que les éléments de gestion de la concurrence, par exemple les mutex, étaient mis en place, nous avons pu tester son bon fonctionnement en contrôlant justement les deux éléments précédents. Le bon calcul de l'argent et des patients repose en grande partie sur la gestion correct des variables partagées qui décompte les ressources.
+
+Puisque le calcul est à chaque fois juste, il est très peu probable que la concurrence des threads pose des problèmes.
 
 </div>
